@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Spotify Streamer</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="enter_artist">Enter artist</string>
+
+    <string name="result_is_empty">The result is empty. Try to search with different name.</string>
+    <string name="title_activity_top_tracks_empty">No Top Tracks</string>
+    <string name="title_activity_top_tracks_default">Top 10 Tracks</string>
+    <string name="title_activity_top_tracks_custom">Top %1$s Tracks</string>
+
+
+    <string name="thumbnail">Thumbnail</string>
+
+    <string name="spotify_option_country">CA</string>
+</resources>
