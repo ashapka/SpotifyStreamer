@@ -20,18 +20,32 @@ public class ArtistAdapter extends SpotifyAdapterBase {
     public View getView(int position, View convertView, ViewGroup parent) {
         View view = super.getView(position, convertView, parent);
 
-        ImageView thumbnail = (ImageView) view.findViewById(R.id.list_item_artist_thumbnail);
-        TextView artistName = (TextView) view.findViewById(R.id.list_item_artist_name);
+        ViewHolder holder;
+        if (convertView == null) {
+            holder = new ViewHolder();
+
+            holder.thumbnail = (ImageView) view.findViewById(R.id.list_item_artist_thumbnail);
+            holder.artistName = (TextView) view.findViewById(R.id.list_item_artist_name);
+
+            view.setTag(holder);
+        } else {
+            holder = (ViewHolder) view.getTag();
+        }
 
         HashMapWrapperParcelable<String, String> info = getData().get(position);
 
-        artistName.setText(info.get(InfoKeys.KEY_ARTIST_NAME));
+        holder.artistName.setText(info.get(InfoKeys.KEY_ARTIST_NAME));
 
         String imgUrl = info.get(InfoKeys.KEY_THUMB_URL);
         if (imgUrl != null) {
-            Picasso.with(getContext()).load(imgUrl).into(thumbnail);
+            Picasso.with(getContext()).load(imgUrl).into(holder.thumbnail);
         }
 
         return view;
+    }
+
+    private static class ViewHolder {
+        ImageView thumbnail;
+        TextView artistName;
     }
 }

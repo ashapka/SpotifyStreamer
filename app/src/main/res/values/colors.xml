@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="list_item_track_album_name_textColor">#040404</color>
+    <color name="list_item_track_name_textColor">#343434</color>
+</resources>
