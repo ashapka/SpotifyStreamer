@@ -26,6 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TopTracksActivityFragment extends Fragment {
 
     private String mArtistId;
+    private int mTopTracksSize;
     private TrackAdapter mTrackAdapter;
 
     private ProgressBar mSpinner;
@@ -53,16 +54,23 @@ public class TopTracksActivityFragment extends Fragment {
         }
 
         ListView topTracksView = (ListView) rootView.findViewById(R.id.listview_toptracks);
-        ArrayList<HashMap<String, String>> infoList = new ArrayList<>();
+
+        ArrayList<HashMapWrapperParcelable<String, String>> infoList = null;
 
         if (savedInstanceState != null) {
             mNeedLoadTracks = false;
-            infoList = (ArrayList<HashMap<String, String>>) savedInstanceState.getSerializable("mTrackAdapter");
-            if (infoList == null) {
-                infoList = new ArrayList<>();
-            }
+
+            infoList = savedInstanceState.getParcelableArrayList("mTrackAdapter");
+
+            mTopTracksSize = savedInstanceState.getInt("mTopTracksSize");
+            setTitle(mTopTracksSize);
+
         } else {
             mNeedLoadTracks = true;
+        }
+
+        if (infoList == null) {
+            infoList = new ArrayList<>();
         }
 
         mTrackAdapter = new TrackAdapter(getActivity(), infoList);
@@ -71,11 +79,28 @@ public class TopTracksActivityFragment extends Fragment {
         return rootView;
     }
 
+    private void setTitle(int topTracksSize) {
+
+        switch (topTracksSize){
+            case 0:
+                getActivity().setTitle(getString(R.string.title_activity_top_tracks_empty));
+                break;
+
+            case 1:
+                getActivity().setTitle(getString(R.string.title_activity_top_one_track));
+                break;
+
+            default:
+                getActivity().setTitle(String.format(getString(R.string.title_activity_top_tracks_custom), topTracksSize));
+                break;
+        }
+
+    }
     @Override
     public void onSaveInstanceState(Bundle outState) {
-
         if (mTrackAdapter != null) {
-            outState.putSerializable("mTrackAdapter", mTrackAdapter.getData());
+            outState.putParcelableArrayList("mTrackAdapter", mTrackAdapter.getData());
+            outState.putInt("mTopTracksSize", mTopTracksSize);
         }
 
         super.onSaveInstanceState(outState);
@@ -91,7 +116,7 @@ public class TopTracksActivityFragment extends Fragment {
         }
     }
 
-    private final class FetchTopTracksTask extends AsyncTask<String, Void, ArrayList<HashMap<String, String>>> {
+    private final class FetchTopTracksTask extends AsyncTask<String, Void, ArrayList<HashMapWrapperParcelable<String, String>>> {
 
         private final String LOG_TAG = FetchTopTracksTask.class.getSimpleName();
 
@@ -106,16 +131,20 @@ public class TopTracksActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<HashMap<String, String>> info) {
+        protected void onPostExecute(ArrayList<HashMapWrapperParcelable<String, String>> info) {
 
             mTrackAdapter.clear();
 
-            if (info != null && info.size() > 0) {
-                getActivity().setTitle(String.format(getString(R.string.title_activity_top_tracks_custom), info.size()));
+            mTopTracksSize = 0;
+            if (info != null) {
+                mTopTracksSize = info.size();
+            }
+            setTitle(mTopTracksSize);
+
+            if (mTopTracksSize > 0) {
                 mTrackAdapter.addAll(info);
             } else {
-                getActivity().setTitle(getString(R.string.title_activity_top_tracks_empty));
-                Toast toast = Toast.makeText(getActivity(), getActivity().getString(R.string.result_is_empty), Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getActivity(), getActivity().getString(R.string.top_tracks_result_is_empty), Toast.LENGTH_LONG);
                 toast.show();
             }
 
@@ -123,7 +152,7 @@ public class TopTracksActivityFragment extends Fragment {
         }
 
         @Override
-        protected ArrayList<HashMap<String, String>> doInBackground(String... params) {
+        protected ArrayList<HashMapWrapperParcelable<String, String>> doInBackground(String... params) {
 
             if (params == null || params.length == 0) {
                 return null;
@@ -141,12 +170,12 @@ public class TopTracksActivityFragment extends Fragment {
                 SpotifyService spotifyService = spotifyApi.getService();
                 Tracks topTracks = spotifyService.getArtistTopTrack(query, options);
 
-                ArrayList<HashMap<String, String>> result = new ArrayList<>();
+                ArrayList<HashMapWrapperParcelable<String, String>> result = new ArrayList<>();
 
                 for (int i = 0; i < topTracks.tracks.size(); ++i) {
                     Track track = topTracks.tracks.get(i);
 
-                    HashMap<String, String> map = new HashMap<>();
+                    HashMapWrapperParcelable<String, String> map = new HashMapWrapperParcelable<>();
                     map.put(InfoKeys.KEY_ALBUM_NAME, track.album.name);
                     map.put(InfoKeys.KEY_TRACK_NAME, track.name);
 

@@ -1,16 +1,23 @@
 <resources>
     <string name="app_name">Spotify Streamer</string>
-    <string name="action_settings">Settings</string>
 
-    <string name="enter_artist">Enter artist</string>
+    <string name="search_artists">Search artists</string>
+    <string name="action_clear_search">Clear Search History</string>
 
-    <string name="result_is_empty">The result is empty. Try to search with different name.</string>
+    <string name="result_is_empty">The result is empty. Try to search with different artist name.</string>
+
+    <string name="top_tracks_result_is_empty">There are no top tracks available for this artist.</string>
+
     <string name="title_activity_top_tracks_empty">No Top Tracks</string>
-    <string name="title_activity_top_tracks_default">Top 10 Tracks</string>
+    <string name="title_activity_top_tracks_default">Top Tracks</string>
     <string name="title_activity_top_tracks_custom">Top %1$s Tracks</string>
+    <string name="title_activity_top_one_track">Top 1 Track</string>
 
 
     <string name="thumbnail">Thumbnail</string>
 
     <string name="spotify_option_country">CA</string>
+    <string name="enter_artist_label">Enter the artist name into the search box above.</string>
+
+
 </resources>

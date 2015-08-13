@@ -3,22 +3,22 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="5dip" >
+    android:padding="@dimen/list_item_track_layout_padding" >
 
-    <!--  ListRow Left sied Thumbnail image -->
+    <!--  ListRow Left sided Thumbnail image -->
     <LinearLayout android:id="@+id/list_item_track_thumbnail_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="3dip"
+        android:padding="@dimen/list_item_track_thumbnail_layout_padding"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginRight="5dip"
-        android:layout_marginEnd="5dip">
+        android:layout_marginRight="@dimen/list_item_track_thumbnail_layout_margingRight"
+        android:layout_marginEnd="@dimen/list_item_track_thumbnail_layout_margingEnd">
 
         <ImageView
             android:id="@+id/list_item_track_thumbnail"
-            android:layout_width="50dip"
-            android:layout_height="50dip"
+            android:layout_width="@dimen/list_item_track_imageView_layout_width"
+            android:layout_height="@dimen/list_item_track_imageView_layout_height"
             android:contentDescription="@string/thumbnail"
             android:src="@mipmap/no_image"
             />
@@ -35,7 +35,7 @@
         android:layout_toEndOf="@+id/list_item_track_thumbnail_layout"
         android:textColor="#040404"
         android:typeface="sans"
-        android:textSize="15sp"
+        android:textSize="@dimen/list_item_track_textView_album_textSize"
         android:textStyle="bold"
         />
 
@@ -46,8 +46,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/list_item_track_album_name"
         android:textColor="#343434"
-        android:textSize="12sp"
-        android:layout_marginTop="1dip"
+        android:textSize="@dimen/minimum_textSize"
+        android:layout_marginTop="@dimen/list_item_track_textView_trackName_marginTop"
         android:layout_toRightOf="@+id/list_item_track_thumbnail_layout"
         android:layout_toEndOf="@+id/list_item_track_thumbnail_layout"
         />

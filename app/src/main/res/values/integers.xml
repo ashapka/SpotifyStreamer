@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Delay a search while user is typing.
-         Trigger a search request when user stops typing after specified milliseconds.
-         Default: 2000 -->
-    <integer name="textchanged_response_delay_ms">1000</integer>
-
     <!-- The maximum number of results to return. Default: 20. Minimum: 1. Maximum: 20. -->
     <integer name="search_limit">10</integer>
-
-    <integer name="connection_timeout_ms">10000</integer>
-
 </resources>

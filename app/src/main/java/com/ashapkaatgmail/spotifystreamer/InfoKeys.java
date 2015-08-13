@@ -1,6 +1,6 @@
 package com.ashapkaatgmail.spotifystreamer;
 
-public class InfoKeys {
+class InfoKeys {
     static final String KEY_ARTIST_ID = "id";
     static final String KEY_ARTIST_NAME = "artist_name";
     static final String KEY_ALBUM_NAME = "album_name";

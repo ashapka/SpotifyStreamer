@@ -8,18 +8,17 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
-public class SpotifyAdapterBase extends BaseAdapter {
+class SpotifyAdapterBase extends BaseAdapter {
 
     private final Activity mContext;
     private final LayoutInflater mInflater;
     private final int mResourceListItem;
 
-    private ArrayList<HashMap<String, String>> mData;
+    private ArrayList<HashMapWrapperParcelable<String, String>> mData;
 
-    public SpotifyAdapterBase(Activity context, ArrayList<HashMap<String, String>> data, int resourceListItem) {
+    SpotifyAdapterBase(Activity context, ArrayList<HashMapWrapperParcelable<String, String>> data, int resourceListItem) {
         mContext = context;
         mData = data;
 
@@ -62,16 +61,16 @@ public class SpotifyAdapterBase extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    public void addAll(ArrayList<HashMap<String, String>> info) {
+    public void addAll(ArrayList<HashMapWrapperParcelable<String, String>> info) {
         mData = info;
         notifyDataSetChanged();
     }
 
-    public ArrayList<HashMap<String, String>> getData() {
+    public ArrayList<HashMapWrapperParcelable<String, String>> getData() {
         return mData;
     }
 
-    public Activity getContext(){
+    Activity getContext(){
         return mContext;
     }
 }

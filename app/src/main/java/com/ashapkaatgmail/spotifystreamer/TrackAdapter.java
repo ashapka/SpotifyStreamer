@@ -9,10 +9,9 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class TrackAdapter extends SpotifyAdapterBase {
-    public TrackAdapter(Activity context, ArrayList<HashMap<String, String>> data) {
+    public TrackAdapter(Activity context, ArrayList<HashMapWrapperParcelable<String, String>> data) {
         super(context, data, R.layout.list_item_track);
     }
 
@@ -24,8 +23,7 @@ public class TrackAdapter extends SpotifyAdapterBase {
         TextView albumName = (TextView) view.findViewById(R.id.list_item_track_album_name);
         TextView trackName = (TextView) view.findViewById(R.id.list_item_track_name);
 
-
-        HashMap<String, String> info = getData().get(position);
+        HashMapWrapperParcelable<String, String> info = getData().get(position);
 
         albumName.setText(info.get(InfoKeys.KEY_ALBUM_NAME));
         trackName.setText(info.get(InfoKeys.KEY_TRACK_NAME));

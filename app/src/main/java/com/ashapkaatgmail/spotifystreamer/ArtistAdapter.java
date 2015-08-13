@@ -9,11 +9,10 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class ArtistAdapter extends SpotifyAdapterBase {
-    public ArtistAdapter(Activity context, ArrayList<HashMap<String, String>> data) {
+    public ArtistAdapter(Activity context, ArrayList<HashMapWrapperParcelable<String, String>> data) {
         super(context, data, R.layout.list_item_artist);
     }
 
@@ -24,7 +23,7 @@ public class ArtistAdapter extends SpotifyAdapterBase {
         ImageView thumbnail = (ImageView) view.findViewById(R.id.list_item_artist_thumbnail);
         TextView artistName = (TextView) view.findViewById(R.id.list_item_artist_name);
 
-        HashMap<String, String> info = getData().get(position);
+        HashMapWrapperParcelable<String, String> info = getData().get(position);
 
         artistName.setText(info.get(InfoKeys.KEY_ARTIST_NAME));
 

@@ -1,27 +1,29 @@
 package com.ashapkaatgmail.spotifystreamer;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.provider.SearchRecentSuggestions;
 import android.support.v4.app.Fragment;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -31,21 +33,60 @@ import kaaes.spotify.webapi.android.models.Image;
 
 public class MainActivityFragment extends Fragment {
 
-    private static final int TRIGGER_SERACH = 1;
     private static final CharSequence WILDCARD = "*";
     private static final CharSequence DASH = "-";
-    private final EntryHandler mHandler = new EntryHandler(this);
 
     private ProgressBar mSpinner;
-    private EditText mSearchArtist;
+    private TextView mEnterArtistLabel;
+
     private ArtistAdapter mArtistAdapter;
 
+    private boolean mIsNewActivity;
+
     // settings
-    private long mResponseDelayMs = 2000;
     private int mSearchLimit = 20;
 
     public MainActivityFragment() {
         // empty
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_main, menu);
+
+        // Get the SearchView and set the searchable configuration
+        MenuItem menuItem = menu.findItem(R.id.action_search);
+
+        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+        searchView.setIconifiedByDefault(false);
+
+        if (mIsNewActivity) {
+            MenuItemCompat.expandActionView(menuItem);
+            mIsNewActivity = false;
+        }
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_clear_search) {
+            SearchRecentSuggestions suggestions = new SearchRecentSuggestions(getActivity(),
+                    SearchRecentSuggestionsProviderImpl.AUTHORITY, SearchRecentSuggestionsProviderImpl.MODE);
+            suggestions.clearHistory();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -59,41 +100,47 @@ public class MainActivityFragment extends Fragment {
         mSpinner.setVisibility(View.GONE);
 
         ListView artistsView = (ListView) rootView.findViewById(R.id.listview_search_result);
-        artistsView.setOnItemClickListener(new AdapterView.OnItemClickListener()  {
+        artistsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-            HashMap<String, String> map = mArtistAdapter.getData().get(position);
-            String artistId = map.get(InfoKeys.KEY_ARTIST_ID);
-            String artistName = map.get(InfoKeys.KEY_ARTIST_NAME);
+                HashMapWrapperParcelable<String, String> map = mArtistAdapter.getData().get(position);
+                String artistId = map.get(InfoKeys.KEY_ARTIST_ID);
+                String artistName = map.get(InfoKeys.KEY_ARTIST_NAME);
 
-            Intent topTracksIntent = new Intent(getActivity(), TopTracksActivity.class);
-            topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_ID, artistId);
-            topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_NAME, artistName);
-            startActivity(topTracksIntent);
+                Intent topTracksIntent = new Intent(getActivity(), TopTracksActivity.class);
+                topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_ID, artistId);
+                topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_NAME, artistName);
+                startActivity(topTracksIntent);
 
-        }});
+            }
+        });
 
-        mSearchArtist = (EditText) rootView.findViewById(R.id.edittext_search_artist);
-
-        ArrayList<HashMap<String, String>> infoList = new ArrayList<>();
+        ArrayList<HashMapWrapperParcelable<String, String>> infoList = null;
 
         if (savedInstanceState == null) {
             readSettings();
         } else {
-
-            mResponseDelayMs = savedInstanceState.getLong("mResponseDelayMsSetting");
             mSearchLimit = savedInstanceState.getInt("mSearchLimitSetting");
 
-            infoList = (ArrayList<HashMap<String, String>>)savedInstanceState.getSerializable("mArtistAdapter");
-            if (infoList == null) {
-                infoList = new ArrayList<>();
-            }
+            infoList = savedInstanceState.getParcelableArrayList("mArtistAdapter");
+        }
+
+        if (infoList == null) {
+            infoList = new ArrayList<>();
         }
 
         mArtistAdapter = new ArtistAdapter(getActivity(), infoList);
         artistsView.setAdapter(mArtistAdapter);
+
+        mEnterArtistLabel = (TextView)rootView.findViewById(R.id.enter_artist_label);
+        if (infoList.size() == 0) {
+            mEnterArtistLabel.setVisibility(View.VISIBLE);
+        } else {
+            mEnterArtistLabel.setVisibility(View.GONE);
+        }
+
 
         return rootView;
     }
@@ -101,25 +148,18 @@ public class MainActivityFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
 
-        // preserve the list values
+        super.onSaveInstanceState(outState);
+
         if (mArtistAdapter != null) {
+            outState.putParcelableArrayList("mArtistAdapter", mArtistAdapter.getData());
 
-            outState.putSerializable("mArtistAdapter", mArtistAdapter.getData());
-
-            outState.putLong("mResponseDelayMsSetting", mResponseDelayMs);
             outState.putInt("mSearchLimitSetting", mSearchLimit);
         }
 
-        super.onSaveInstanceState(outState);
+
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mSearchArtist.addTextChangedListener(new TextWatcherImpl(mResponseDelayMs, TRIGGER_SERACH));
-    }
-
-    private void searchArtists() {
+    public void searchArtists(String query) {
 
         // append wildcard to the end of the query
         // note from spotify api docs:
@@ -127,9 +167,6 @@ public class MainActivityFragment extends Fragment {
         //      (maximum: 2 per query). It will match a variable number of non-white-space characters.
         //      It cannot be used in a quoted phrase, in a field filter, when there is a dash ("-")
         //      in the query, or as the first character of the keyword string.
-
-        EditText searchArtist = (EditText) getActivity().findViewById(R.id.edittext_search_artist);
-        String query = searchArtist.getText().toString();
         if (!query.contains(DASH) && !query.contains(WILDCARD)) {
             query += WILDCARD;
         }
@@ -143,12 +180,6 @@ public class MainActivityFragment extends Fragment {
         Resources res = getResources();
 
         try {
-            mResponseDelayMs = res.getInteger(R.integer.textchanged_response_delay_ms);
-        } catch (Resources.NotFoundException e) {
-            mResponseDelayMs = 2000;
-        }
-
-        try {
             mSearchLimit = res.getInteger(R.integer.search_limit);
             if (mSearchLimit < 1 || mSearchLimit > 20) {
                 mSearchLimit = 20;
@@ -157,62 +188,11 @@ public class MainActivityFragment extends Fragment {
             mSearchLimit = 20;
         }
 
+        mIsNewActivity = true;
+
     }
 
-    /**
-     * Trigger the search when user stops typing
-     */
-    private final class TextWatcherImpl implements TextWatcher {
-
-        private final long mResponseDelayMs;
-        private final int mHandlerMessageCode;
-
-        public TextWatcherImpl(long responseDelayMs, int handlerMessageCode) {
-            super();
-
-            mResponseDelayMs = responseDelayMs;
-            mHandlerMessageCode = handlerMessageCode;
-        }
-
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            // empty
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            // empty
-        }
-
-        /**
-         * Delay the search execution by queueing a request.
-         */
-        @Override
-        public void afterTextChanged(Editable s) {
-            mHandler.removeMessages(mHandlerMessageCode);
-            mHandler.sendEmptyMessageDelayed(mHandlerMessageCode, mResponseDelayMs);
-        }
-    }
-
-    private static class EntryHandler extends Handler {
-
-        private final WeakReference<MainActivityFragment> mService;
-
-        public EntryHandler(MainActivityFragment fragment) {
-            mService = new WeakReference<MainActivityFragment>(fragment);
-
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == TRIGGER_SERACH) {
-                MainActivityFragment fragment = mService.get();
-                fragment.searchArtists();
-            }
-        }
-    }
-
-    private final class FetchArtistsTask extends AsyncTask<String, Void, ArrayList<HashMap<String, String>>> {
+    private final class FetchArtistsTask extends AsyncTask<String, Void, ArrayList<HashMapWrapperParcelable<String, String>>> {
 
         private final String LOG_TAG = FetchArtistsTask.class.getSimpleName();
 
@@ -227,13 +207,15 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected void onPostExecute(ArrayList<HashMap<String, String>> info) {
+        protected void onPostExecute(ArrayList<HashMapWrapperParcelable<String, String>> info) {
 
             mArtistAdapter.clear();
 
             if (info != null && info.size() > 0) {
                 mArtistAdapter.addAll(info);
+                mEnterArtistLabel.setVisibility(View.GONE);
             } else {
+                mEnterArtistLabel.setVisibility(View.VISIBLE);
                 Toast toast = Toast.makeText(getActivity(), getActivity().getString(R.string.result_is_empty), Toast.LENGTH_LONG);
                 toast.show();
             }
@@ -242,7 +224,7 @@ public class MainActivityFragment extends Fragment {
         }
 
         @Override
-        protected ArrayList<HashMap<String, String>> doInBackground(String... params) {
+        protected ArrayList<HashMapWrapperParcelable<String, String>> doInBackground(String... params) {
 
             if (params == null || params.length == 0) {
                 return null;
@@ -259,11 +241,11 @@ public class MainActivityFragment extends Fragment {
                 SpotifyService spotifyService = spotifyApi.getService();
                 ArtistsPager spotifyResults = spotifyService.searchArtists(query);
 
-                ArrayList<HashMap<String, String>> result = new ArrayList<>();
+                ArrayList<HashMapWrapperParcelable<String, String>> result = new ArrayList<>();
                 for (int i = 0; i < searchLimit; ++i) {
                     Artist artist = spotifyResults.artists.items.get(i);
 
-                    HashMap<String, String> map = new HashMap<>();
+                    HashMapWrapperParcelable<String, String> map = new HashMapWrapperParcelable<>();
                     map.put(InfoKeys.KEY_ARTIST_ID, artist.id);
                     map.put(InfoKeys.KEY_ARTIST_NAME, artist.name);
 

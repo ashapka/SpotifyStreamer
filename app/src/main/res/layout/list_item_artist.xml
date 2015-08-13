@@ -9,13 +9,13 @@
     <ImageView
         android:id="@+id/list_item_artist_thumbnail"
 
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="@dimen/artist_image_width"
+        android:layout_height="@dimen/artist_image_height"
 
-        android:layout_marginBottom="6dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginBottom="@dimen/artist_image_marginBottom"
+        android:layout_marginLeft="@dimen/artist_image_marginLeft"
+        android:layout_marginRight="@dimen/artist_image_marginRight"
+        android:layout_marginTop="@dimen/artist_image_marginTop"
 
         android:contentDescription="@string/thumbnail"
         android:src="@mipmap/no_image" />
@@ -26,15 +26,15 @@
         android:layout_width="wrap_content"
         android:layout_height="fill_parent"
 
-        android:layout_marginBottom="6dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
-        android:layout_marginTop="6dp"
+        android:layout_marginBottom="@dimen/artist_text_marginBottom"
+        android:layout_marginLeft="@dimen/artist_text_marginLeft"
+        android:layout_marginRight="@dimen/artist_text_marginRight"
+        android:layout_marginTop="@dimen/artist_text_marginTop"
 
         android:gravity="center_vertical"
 
-        android:textSize="20sp"
-        android:paddingTop="6dp" />
+        android:textSize="@dimen/artist_textSize"
+        android:paddingTop="@dimen/artist_text_paddingTop" />
 
 </LinearLayout>
 
