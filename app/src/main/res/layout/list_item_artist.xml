@@ -2,9 +2,10 @@
 
 <!-- http://www.androidinterview.com/android-custom-listview-with-image-and-text-using-arrayadapter/ -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="horizontal" >
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:background="@drawable/touch_selector">
 
     <ImageView
         android:id="@+id/list_item_artist_thumbnail"
@@ -28,7 +29,7 @@
 
         android:layout_marginBottom="@dimen/artist_text_marginBottom"
         android:layout_marginLeft="@dimen/artist_text_marginLeft"
-        android:layout_marginRight="@dimen/artist_text_marginRight"
+        android:layout_marginRight="@dimen/artist_marginRight"
         android:layout_marginTop="@dimen/artist_text_marginTop"
 
         android:gravity="center_vertical"

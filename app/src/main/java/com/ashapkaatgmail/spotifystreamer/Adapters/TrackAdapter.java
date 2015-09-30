@@ -1,4 +1,4 @@
-package com.ashapkaatgmail.spotifystreamer;
+package com.ashapkaatgmail.spotifystreamer.Adapters;
 
 import android.app.Activity;
 import android.view.View;
@@ -6,14 +6,16 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.ashapkaatgmail.spotifystreamer.Helpers.HashMapWrapperParcelable;
+import com.ashapkaatgmail.spotifystreamer.Helpers.InfoKeys;
+import com.ashapkaatgmail.spotifystreamer.R;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
-
-public class ArtistAdapter extends SpotifyAdapterBase {
-    public ArtistAdapter(Activity context, ArrayList<HashMapWrapperParcelable<String, String>> data) {
-        super(context, data, R.layout.list_item_artist);
+public class TrackAdapter extends SpotifyAdapterBase {
+    public TrackAdapter(Activity context, ArrayList<HashMapWrapperParcelable<String, String>> data) {
+        super(context, data, R.layout.list_item_track);
     }
 
     @Override
@@ -24,8 +26,9 @@ public class ArtistAdapter extends SpotifyAdapterBase {
         if (convertView == null) {
             holder = new ViewHolder();
 
-            holder.thumbnail = (ImageView) view.findViewById(R.id.list_item_artist_thumbnail);
-            holder.artistName = (TextView) view.findViewById(R.id.list_item_artist_name);
+            holder.thumbnail = (ImageView) view.findViewById(R.id.list_item_track_thumbnail);
+            holder.albumName = (TextView) view.findViewById(R.id.list_item_track_album_name);
+            holder.trackName = (TextView) view.findViewById(R.id.list_item_track_name);
 
             view.setTag(holder);
         } else {
@@ -34,7 +37,8 @@ public class ArtistAdapter extends SpotifyAdapterBase {
 
         HashMapWrapperParcelable<String, String> info = getData().get(position);
 
-        holder.artistName.setText(info.get(InfoKeys.KEY_ARTIST_NAME));
+        holder.albumName.setText(info.get(InfoKeys.KEY_ALBUM_NAME));
+        holder.trackName.setText(info.get(InfoKeys.KEY_TRACK_NAME));
 
         String imgUrl = info.get(InfoKeys.KEY_THUMB_URL);
         if (imgUrl != null) {
@@ -46,6 +50,7 @@ public class ArtistAdapter extends SpotifyAdapterBase {
 
     private static class ViewHolder {
         ImageView thumbnail;
-        TextView artistName;
+        TextView albumName;
+        TextView trackName;
     }
 }

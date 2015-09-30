@@ -2,7 +2,6 @@ package com.ashapkaatgmail.spotifystreamer;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -23,6 +22,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ashapkaatgmail.spotifystreamer.Adapters.ArtistAdapter;
+import com.ashapkaatgmail.spotifystreamer.Helpers.HashMapWrapperParcelable;
+import com.ashapkaatgmail.spotifystreamer.Helpers.InfoKeys;
+import com.ashapkaatgmail.spotifystreamer.Helpers.SearchRecentSuggestionsProviderImpl;
+
 import java.util.ArrayList;
 
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -38,13 +42,21 @@ public class MainActivityFragment extends Fragment {
 
     private ProgressBar mSpinner;
     private TextView mEnterArtistLabel;
+    private ListView mArtistsView;
 
     private ArtistAdapter mArtistAdapter;
 
     private boolean mIsNewActivity;
 
+    private int mPosition = ListView.INVALID_POSITION;
+    private static final String SELECTED_KEY = "selected_position";
+
     // settings
     private int mSearchLimit = 20;
+
+    public interface Callback {
+        void onItemSelected(HashMapWrapperParcelable<String, String> artistData);
+    }
 
     public MainActivityFragment() {
         // empty
@@ -99,21 +111,17 @@ public class MainActivityFragment extends Fragment {
         mSpinner = (ProgressBar)rootView.findViewById(R.id.progressBar);
         mSpinner.setVisibility(View.GONE);
 
-        ListView artistsView = (ListView) rootView.findViewById(R.id.listview_search_result);
-        artistsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mArtistsView = (ListView) rootView.findViewById(R.id.listview_search_result);
+        mArtistsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 HashMapWrapperParcelable<String, String> map = mArtistAdapter.getData().get(position);
-                String artistId = map.get(InfoKeys.KEY_ARTIST_ID);
-                String artistName = map.get(InfoKeys.KEY_ARTIST_NAME);
 
-                Intent topTracksIntent = new Intent(getActivity(), TopTracksActivity.class);
-                topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_ID, artistId);
-                topTracksIntent.putExtra(InfoKeys.KEY_ARTIST_NAME, artistName);
-                startActivity(topTracksIntent);
+                ((Callback) getActivity()).onItemSelected(map);
 
+                mPosition = position;
             }
         });
 
@@ -125,6 +133,10 @@ public class MainActivityFragment extends Fragment {
             mSearchLimit = savedInstanceState.getInt("mSearchLimitSetting");
 
             infoList = savedInstanceState.getParcelableArrayList("mArtistAdapter");
+
+            if (savedInstanceState.containsKey(SELECTED_KEY)) {
+                mPosition = savedInstanceState.getInt(SELECTED_KEY);
+            }
         }
 
         if (infoList == null) {
@@ -132,7 +144,7 @@ public class MainActivityFragment extends Fragment {
         }
 
         mArtistAdapter = new ArtistAdapter(getActivity(), infoList);
-        artistsView.setAdapter(mArtistAdapter);
+        mArtistsView.setAdapter(mArtistAdapter);
 
         mEnterArtistLabel = (TextView)rootView.findViewById(R.id.enter_artist_label);
         if (infoList.size() == 0) {
@@ -140,7 +152,6 @@ public class MainActivityFragment extends Fragment {
         } else {
             mEnterArtistLabel.setVisibility(View.GONE);
         }
-
 
         return rootView;
     }
@@ -156,7 +167,18 @@ public class MainActivityFragment extends Fragment {
             outState.putInt("mSearchLimitSetting", mSearchLimit);
         }
 
+        if (mPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+        }
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (mPosition != ListView.INVALID_POSITION) {
+            mArtistsView.smoothScrollToPosition(mPosition);
+        }
     }
 
     public void searchArtists(String query) {
@@ -210,6 +232,7 @@ public class MainActivityFragment extends Fragment {
         protected void onPostExecute(ArrayList<HashMapWrapperParcelable<String, String>> info) {
 
             mArtistAdapter.clear();
+            mArtistsView.clearChoices();
 
             if (info != null && info.size() > 0) {
                 mArtistAdapter.addAll(info);

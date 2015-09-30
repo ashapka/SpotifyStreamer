@@ -10,7 +10,7 @@
     <dimen name="artist_image_marginTop">6dp</dimen>
     <dimen name="artist_text_marginBottom">6dp</dimen>
     <dimen name="artist_text_marginLeft">6dp</dimen>
-    <dimen name="artist_text_marginRight">6dp</dimen>
+    <dimen name="artist_marginRight">6dp</dimen>
     <dimen name="artist_text_marginTop">6dp</dimen>
     <dimen name="artist_textSize">20sp</dimen>
     <dimen name="artist_text_paddingTop">6dp</dimen>

@@ -19,5 +19,15 @@
     <string name="spotify_option_country">CA</string>
     <string name="enter_artist_label">Enter the artist name into the search box above.</string>
 
+    <string name="artist_name">Artist Name</string>
+    <string name="album_name">Album Name</string>
+    <string name="album_artwork">Album Artwork</string>
+    <string name="track_name">Track Name</string>
+    <string name="time_zero">0:00</string>
+    <string name="preview_mode">Preview Mode</string>
+    <string name="previous">Previous</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
 
 </resources>

@@ -1,4 +1,4 @@
-package com.ashapkaatgmail.spotifystreamer;
+package com.ashapkaatgmail.spotifystreamer.Helpers;
 
 
 import android.os.Parcel;
@@ -24,6 +24,10 @@ public class HashMapWrapperParcelable<K, V> implements Parcelable {
         return value;
     }
 
+    public HashMap<K, V> getHashMap() {
+        return mMap;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -39,7 +43,6 @@ public class HashMapWrapperParcelable<K, V> implements Parcelable {
                 dest.writeValue(entry.getValue());
             }
         }
-
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

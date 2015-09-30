@@ -1,16 +1,26 @@
 package com.ashapkaatgmail.spotifystreamer;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import com.ashapkaatgmail.spotifystreamer.Adapters.TrackAdapter;
+import com.ashapkaatgmail.spotifystreamer.Helpers.HashMapWrapperParcelable;
+import com.ashapkaatgmail.spotifystreamer.Helpers.InfoKeys;
+import com.ashapkaatgmail.spotifystreamer.Helpers.Strings;
+import com.ashapkaatgmail.spotifystreamer.Helpers.UserLeaveHintCallbackInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,9 +33,16 @@ import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
 
-public class TopTracksActivityFragment extends Fragment {
+public class TopTracksActivityFragment extends Fragment
+                            implements UserLeaveHintCallbackInterface {
 
-    private String mArtistId;
+    private final String MEDIA_PLAYER_FRAGMENT_TAG = "MEDIA_PLAYER_FRAGMENT";
+
+    private String mArtistId = Strings.EMPTY_STRING;
+    private String mArtistName = Strings.EMPTY_STRING;
+
+    private UserLeaveHintCallbackInterface mUserLeaveHintCallback;
+
     private int mTopTracksSize;
     private TrackAdapter mTrackAdapter;
 
@@ -33,9 +50,22 @@ public class TopTracksActivityFragment extends Fragment {
 
     private boolean mNeedLoadTracks = false;
 
+    private boolean mIsLargeLayout;
 
     public TopTracksActivityFragment() {
         // empty
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        MediaPlayerActivityFragment mediaPlayerActivityFragment = (MediaPlayerActivityFragment) fragmentManager.findFragmentByTag(MEDIA_PLAYER_FRAGMENT_TAG);
+        if (mediaPlayerActivityFragment != null) {
+            mUserLeaveHintCallback = mediaPlayerActivityFragment;
+        }
     }
 
     @Override
@@ -48,12 +78,24 @@ public class TopTracksActivityFragment extends Fragment {
         mSpinner = (ProgressBar)rootView.findViewById(R.id.progressBarTopTracks);
         mSpinner.setVisibility(View.GONE);
 
-        Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra(InfoKeys.KEY_ARTIST_ID)) {
-            mArtistId = intent.getStringExtra(InfoKeys.KEY_ARTIST_ID);
+        Bundle args = getArguments();
+        if (args != null) {
+            mArtistId = args.getString(InfoKeys.KEY_ARTIST_ID, Strings.EMPTY_STRING);
+            mArtistName = args.getString(InfoKeys.KEY_ARTIST_NAME, Strings.EMPTY_STRING);
         }
 
+
         ListView topTracksView = (ListView) rootView.findViewById(R.id.listview_toptracks);
+        topTracksView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                ArrayList<HashMapWrapperParcelable<String, String>> topTracks = mTrackAdapter.getData();
+
+                showMediaPlayer(topTracks, position);
+            }
+
+        });
 
         ArrayList<HashMapWrapperParcelable<String, String>> infoList = null;
 
@@ -63,7 +105,7 @@ public class TopTracksActivityFragment extends Fragment {
             infoList = savedInstanceState.getParcelableArrayList("mTrackAdapter");
 
             mTopTracksSize = savedInstanceState.getInt("mTopTracksSize");
-            setTitle(mTopTracksSize);
+            setTitle();
 
         } else {
             mNeedLoadTracks = true;
@@ -79,23 +121,30 @@ public class TopTracksActivityFragment extends Fragment {
         return rootView;
     }
 
-    private void setTitle(int topTracksSize) {
+    private void setTitle() {
 
-        switch (topTracksSize){
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        switch (mTopTracksSize) {
             case 0:
-                getActivity().setTitle(getString(R.string.title_activity_top_tracks_empty));
+                activity.setTitle(getString(R.string.title_activity_top_tracks_empty));
                 break;
 
             case 1:
-                getActivity().setTitle(getString(R.string.title_activity_top_one_track));
+                activity.setTitle(getString(R.string.title_activity_top_one_track));
                 break;
 
             default:
-                getActivity().setTitle(String.format(getString(R.string.title_activity_top_tracks_custom), topTracksSize));
+                activity.setTitle(String.format(getString(R.string.title_activity_top_tracks_custom), mTopTracksSize));
                 break;
         }
 
+        ActionBar actionBar = activity.getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setSubtitle(mArtistName);
+        }
     }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         if (mTrackAdapter != null) {
@@ -110,9 +159,44 @@ public class TopTracksActivityFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        if (mNeedLoadTracks) {
+        if (mNeedLoadTracks && mArtistId.length() > 0) {
             FetchTopTracksTask topTracksTask = new FetchTopTracksTask();
             topTracksTask.execute(mArtistId);
+        }
+    }
+
+    private void showMediaPlayer(ArrayList<HashMapWrapperParcelable<String, String>> topTracks, int currentPosition) {
+
+        Bundle args = new Bundle();
+        args.putParcelableArrayList(InfoKeys.KEY_TOP_TRACKS_LIST, topTracks);
+        args.putInt(InfoKeys.KEY_SELECTED_TRACK_POSITION, currentPosition);
+        args.putString(InfoKeys.KEY_ARTIST_NAME, mArtistName);
+
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        MediaPlayerActivityFragment mediaPlayerActivityFragment = new MediaPlayerActivityFragment();
+        mediaPlayerActivityFragment.setArguments(args);
+
+        mUserLeaveHintCallback = mediaPlayerActivityFragment;
+
+        if (mIsLargeLayout) {
+            // The device is using a large layout, so show the fragment as a dialog
+            mediaPlayerActivityFragment.show(fragmentManager, MEDIA_PLAYER_FRAGMENT_TAG);
+        } else {
+            // The device is smaller, so show the fragment fullscreen
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            // For a little polish, specify a transition animation
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            // To make it fullscreen, use the 'content' root view as the container
+            // for the fragment, which is always the root view for the activity
+            transaction.add(android.R.id.content, mediaPlayerActivityFragment, MEDIA_PLAYER_FRAGMENT_TAG)
+                    .addToBackStack(null).commit();
+        }
+    }
+
+    @Override
+    public void onUserLeaveHintCallback() {
+        if (mUserLeaveHintCallback != null) {
+            mUserLeaveHintCallback.onUserLeaveHintCallback();
         }
     }
 
@@ -139,7 +223,7 @@ public class TopTracksActivityFragment extends Fragment {
             if (info != null) {
                 mTopTracksSize = info.size();
             }
-            setTitle(mTopTracksSize);
+            setTitle();
 
             if (mTopTracksSize > 0) {
                 mTrackAdapter.addAll(info);
@@ -178,12 +262,18 @@ public class TopTracksActivityFragment extends Fragment {
                     HashMapWrapperParcelable<String, String> map = new HashMapWrapperParcelable<>();
                     map.put(InfoKeys.KEY_ALBUM_NAME, track.album.name);
                     map.put(InfoKeys.KEY_TRACK_NAME, track.name);
+                    map.put(InfoKeys.KEY_TRACK_PREVIEW_URL, track.preview_url);
+                    map.put(InfoKeys.KEY_TRACK_DURATION_MS, String.valueOf(track.duration_ms));
 
                     if (track.album.images.size()>0) {
                         Image image = track.album.images.get(track.album.images.size() - 1);
                         map.put(InfoKeys.KEY_THUMB_URL, image.url);
+
+                        image = track.album.images.get(0);
+                        map.put(InfoKeys.KEY_THUMB_LARGE_URL, image.url);
                     } else {
                         map.put(InfoKeys.KEY_THUMB_URL, null);
+                        map.put(InfoKeys.KEY_THUMB_LARGE_URL, null);
                     }
                     result.add(map);
                 }
