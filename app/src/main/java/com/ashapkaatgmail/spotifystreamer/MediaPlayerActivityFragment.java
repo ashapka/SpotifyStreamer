@@ -39,6 +39,7 @@ public class MediaPlayerActivityFragment extends DialogFragment
                     UserLeaveHintCallbackInterface{
 
     private boolean mIsMediaPlayerServiceBound = false;
+    private boolean mIsFragmentFirstTimeCreated = false;
     private boolean mPleaseStopMediaPlayer = false;
     private MediaPlayerService mService = null;
 
@@ -99,6 +100,7 @@ public class MediaPlayerActivityFragment extends DialogFragment
         if (args != null) {
             if (savedInstanceState == null) {
                 mCurrentTrackListPosition = args.getInt(InfoKeys.KEY_SELECTED_TRACK_POSITION);
+                mIsFragmentFirstTimeCreated = true;
             }
             mTopTracks = args.getParcelableArrayList(InfoKeys.KEY_TOP_TRACKS_LIST);
             mArtistName = args.getString(InfoKeys.KEY_ARTIST_NAME);
@@ -117,6 +119,11 @@ public class MediaPlayerActivityFragment extends DialogFragment
             }
 
             loadRootView(rootView);
+
+            // start playback as soon as the dialog is launched
+            if (savedInstanceState == null) {
+                playTrack();
+            }
         }
 
         return rootView;
@@ -311,6 +318,8 @@ public class MediaPlayerActivityFragment extends DialogFragment
 
         mDurationMsString = Strings.EMPTY_STRING;
         loadRootView(view.getRootView());
+
+        playTrack();
     }
 
     private void loadPreviousTrack(View view)
@@ -330,6 +339,8 @@ public class MediaPlayerActivityFragment extends DialogFragment
 
         mDurationMsString = Strings.EMPTY_STRING;
         loadRootView(view.getRootView());
+
+        playTrack();
     }
 
     private void playTrack() {
@@ -389,6 +400,10 @@ public class MediaPlayerActivityFragment extends DialogFragment
             mIsMediaPlayerServiceBound = true;
             if (mService.isTrackPlaying()) {
                 hidePlayButton();
+            }
+            if (mIsFragmentFirstTimeCreated) {
+                playTrack();
+                mIsFragmentFirstTimeCreated = false;
             }
         }
 
