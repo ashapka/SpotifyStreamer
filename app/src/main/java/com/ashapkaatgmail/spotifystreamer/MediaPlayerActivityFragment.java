@@ -119,11 +119,6 @@ public class MediaPlayerActivityFragment extends DialogFragment
             }
 
             loadRootView(rootView);
-
-            // start playback as soon as the dialog is launched
-            if (savedInstanceState == null) {
-                playTrack();
-            }
         }
 
         return rootView;
