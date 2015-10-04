@@ -40,7 +40,7 @@ public class ArtistAdapter extends SpotifyAdapterBase {
         holder.artistName.setText(info.get(InfoKeys.KEY_ARTIST_NAME));
 
         String imgUrl = info.get(InfoKeys.KEY_THUMB_URL);
-        if (imgUrl != null) {
+        if (imgUrl != null && !imgUrl.isEmpty()) {
             Picasso.with(getContext()).load(imgUrl).into(holder.thumbnail);
         }
 

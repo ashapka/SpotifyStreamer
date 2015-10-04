@@ -1,11 +1,13 @@
 package com.ashapkaatgmail.spotifystreamer;
 
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +23,7 @@ import com.ashapkaatgmail.spotifystreamer.Helpers.HashMapWrapperParcelable;
 import com.ashapkaatgmail.spotifystreamer.Helpers.InfoKeys;
 import com.ashapkaatgmail.spotifystreamer.Helpers.Strings;
 import com.ashapkaatgmail.spotifystreamer.Helpers.UserLeaveHintCallbackInterface;
+import com.ashapkaatgmail.spotifystreamer.Helpers.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +37,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 
 
 public class TopTracksActivityFragment extends Fragment
-                            implements UserLeaveHintCallbackInterface {
+        implements UserLeaveHintCallbackInterface {
 
     private final String MEDIA_PLAYER_FRAGMENT_TAG = "MEDIA_PLAYER_FRAGMENT";
 
@@ -160,8 +163,22 @@ public class TopTracksActivityFragment extends Fragment
         super.onResume();
 
         if (mNeedLoadTracks && mArtistId.length() > 0) {
-            FetchTopTracksTask topTracksTask = new FetchTopTracksTask();
-            topTracksTask.execute(mArtistId);
+            if (Utils.isNetworkAvailable(getActivity())) {
+                FetchTopTracksTask topTracksTask = new FetchTopTracksTask();
+                topTracksTask.execute(mArtistId);
+            } else {
+                new AlertDialog.Builder(getActivity())
+                        .setTitle("Error")
+                        .setMessage("Network is not available.")
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
         }
     }
 

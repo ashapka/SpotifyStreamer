@@ -2,12 +2,14 @@ package com.ashapkaatgmail.spotifystreamer;
 
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.SearchRecentSuggestions;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,6 +28,7 @@ import com.ashapkaatgmail.spotifystreamer.Adapters.ArtistAdapter;
 import com.ashapkaatgmail.spotifystreamer.Helpers.HashMapWrapperParcelable;
 import com.ashapkaatgmail.spotifystreamer.Helpers.InfoKeys;
 import com.ashapkaatgmail.spotifystreamer.Helpers.SearchRecentSuggestionsProviderImpl;
+import com.ashapkaatgmail.spotifystreamer.Helpers.Utils;
 
 import java.util.ArrayList;
 
@@ -193,8 +196,22 @@ public class MainActivityFragment extends Fragment {
             query += WILDCARD;
         }
 
-        FetchArtistsTask artistsTask = new FetchArtistsTask();
-        artistsTask.execute(query, String.valueOf(mSearchLimit));
+        if (Utils.isNetworkAvailable(getActivity())) {
+            FetchArtistsTask artistsTask = new FetchArtistsTask();
+            artistsTask.execute(query, String.valueOf(mSearchLimit));
+        } else {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle("Error")
+                    .setMessage("Network is not available.")
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            // do nothing
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+        }
     }
 
     private void readSettings() {

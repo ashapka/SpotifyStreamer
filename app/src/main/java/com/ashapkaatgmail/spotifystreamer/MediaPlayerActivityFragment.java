@@ -36,7 +36,7 @@ import java.util.HashMap;
 
 public class MediaPlayerActivityFragment extends DialogFragment
         implements MediaPlayerService.ServiceClientListener,
-                    UserLeaveHintCallbackInterface{
+        UserLeaveHintCallbackInterface{
 
     private boolean mIsMediaPlayerServiceBound = false;
     private boolean mIsFragmentFirstTimeCreated = false;
@@ -298,18 +298,22 @@ public class MediaPlayerActivityFragment extends DialogFragment
 
     private void loadNextTrack(View view)
     {
+        loadTrack(view, true);
+    }
+
+    private void loadPreviousTrack(View view)
+    {
+        loadTrack(view, false);
+    }
+
+    private void loadTrack(View view, boolean isNext) {
         if (mIsMediaPlayerServiceBound) {
             mService.stopTrack();
         }
 
         unhidePlayButton();
 
-        // move to the first track in case the last one is currently selected
-        if (mCurrentTrackListPosition == mTopTracksCopy.size() - 1) {
-            mCurrentTrackListPosition = 0;
-        } else {
-            ++mCurrentTrackListPosition;
-        }
+        moveCurrentTrackListPosition(isNext);
 
         mDurationMsString = Strings.EMPTY_STRING;
         loadRootView(view.getRootView());
@@ -317,25 +321,22 @@ public class MediaPlayerActivityFragment extends DialogFragment
         playTrack();
     }
 
-    private void loadPreviousTrack(View view)
-    {
-        if (mIsMediaPlayerServiceBound) {
-            mService.stopTrack();
-        }
-
-        unhidePlayButton();
-
-        // move to the last track in case the first one is currently selected
-        if (mCurrentTrackListPosition == 0) {
-            mCurrentTrackListPosition = mTopTracksCopy.size() - 1;
+    private void moveCurrentTrackListPosition(boolean doMoveForward) {
+        if (doMoveForward){
+            // move to the first track in case the last one is currently selected
+            if (mCurrentTrackListPosition == mTopTracksCopy.size() - 1) {
+                mCurrentTrackListPosition = 0;
+            } else {
+                ++mCurrentTrackListPosition;
+            }
         } else {
-            --mCurrentTrackListPosition;
+            // move to the last track in case the first one is currently selected
+            if (mCurrentTrackListPosition == 0) {
+                mCurrentTrackListPosition = mTopTracksCopy.size() - 1;
+            } else {
+                --mCurrentTrackListPosition;
+            }
         }
-
-        mDurationMsString = Strings.EMPTY_STRING;
-        loadRootView(view.getRootView());
-
-        playTrack();
     }
 
     private void playTrack() {
